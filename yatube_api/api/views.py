@@ -2,9 +2,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from .permissions import IsAuthorReadOnly
-from posts.models import Group, Post, Comment
-from .serializers import PostSerializer, CommentSerializer, GroupSerializer
+from posts.models import Comment, Group, Post
+from api.serializers import CommentSerializer, PostSerializer, GroupSerializer
+from api.permissions import IsAuthorReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -22,13 +22,15 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticated, IsAuthorReadOnly)
-
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return Comment.objects.filter(post=post)
+        post_id = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        return Comment.objects.filter(post=post_id)
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsAuthorReadOnly]
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        serializer.save(author=self.request.user, post=post)
+        serializer.save(
+            author=self.request.user,
+            post=post)
