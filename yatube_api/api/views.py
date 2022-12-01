@@ -10,7 +10,7 @@ from api.permissions import IsAuthorReadOnly
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated, IsAuthorReadOnly]
+    permission_classes = (IsAuthenticated, IsAuthorReadOnly)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -23,11 +23,11 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
-        post_id = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return Comment.objects.filter(post=post_id)
+        post_obj = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        return post_obj.comments.all()
 
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated, IsAuthorReadOnly]
+    permission_classes = (IsAuthenticated, IsAuthorReadOnly)
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
